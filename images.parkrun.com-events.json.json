@@ -58232,6 +58232,26 @@
           "seriesid": 1,
           "EventLocation": "Park Zamkowy w Żywcu"
         }
+      },
+      {
+        "id": 3911,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            170.959005,
+            -45.098254
+          ]
+        },
+        "properties": {
+          "eventname": "oamarupublicgardens",
+          "EventLongName": "Ōamaru Public Gardens parkrun",
+          "EventShortName": "Ōamaru Public Gardens",
+          "LocalisedEventLongName": null,
+          "countrycode": 65,
+          "seriesid": 1,
+          "EventLocation": "Ōamaru Public Gardens"
+        }
       }
     ]
   }
