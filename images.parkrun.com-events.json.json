@@ -58612,6 +58612,46 @@
           "seriesid": 1,
           "EventLocation": "Nimmerdor"
         }
+      },
+      {
+        "id": 3931,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.491959,
+            53.275351
+          ]
+        },
+        "properties": {
+          "eventname": "koenigshof",
+          "EventLongName": "Königshof parkrun",
+          "EventShortName": "Königshof",
+          "LocalisedEventLongName": null,
+          "countrycode": 32,
+          "seriesid": 1,
+          "EventLocation": "Königshof"
+        }
+      },
+      {
+        "id": 3932,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -6.373278,
+            53.309692
+          ]
+        },
+        "properties": {
+          "eventname": "ballymount",
+          "EventLongName": "Ballymount parkrun",
+          "EventShortName": "Ballymount",
+          "LocalisedEventLongName": null,
+          "countrycode": 42,
+          "seriesid": 1,
+          "EventLocation": "Ballymount"
+        }
       }
     ]
   }
