@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>parkrun map</title>
+<link rel="stylesheet" href="vendor/leaflet.css" />
+<link rel="stylesheet" href="vendor/MarkerCluster.css" />
+<link rel="stylesheet" href="vendor/MarkerCluster.Default.css" />
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --ink: #1d2530;
+    --muted: #5b6675;
+    --line: #e2e6ec;
+    --accent: #2a7d2e;
+    --accent-ink: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  header {
+    flex: 0 0 auto;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+  }
+  header h1 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header h1 span { color: var(--accent); }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .field label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .field select, .field input {
+    font-size: 14px;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    min-width: 160px;
+    height: 36px;
+  }
+  .field input { min-width: 200px; }
+  .field select:focus, .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(42, 125, 46, 0.15);
+  }
+  .count {
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: auto;
+    padding-bottom: 8px;
+    white-space: nowrap;
+  }
+  .count b { color: var(--ink); }
+  button.reset {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button.reset:hover { background: var(--bg); }
+  #map { flex: 1 1 auto; width: 100%; }
+  .leaflet-popup-content { font-size: 13px; line-height: 1.45; margin: 10px 12px; }
+  .leaflet-popup-content .p-name { font-weight: 700; font-size: 14px; display: block; margin-bottom: 2px; }
+  .leaflet-popup-content .p-meta { color: var(--muted); }
+  .leaflet-popup-content .p-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(42,125,46,0.12);
+    color: var(--accent);
+  }
+  .leaflet-popup-content a { color: var(--accent); font-weight: 600; }
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--muted);
+    z-index: 500;
+    pointer-events: none;
+  }
+  @media (max-width: 640px) {
+    .field select, .field input { min-width: 0; width: 100%; }
+    .field { flex: 1 1 45%; }
+    .count { width: 100%; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><span>parkrun</span> map</h1>
+  <div class="filters">
+    <div class="field">
+      <label for="f-country">Country</label>
+      <select id="f-country"><option value="">All countries</option></select>
+    </div>
+    <div class="field">
+      <label for="f-series">Series</label>
+      <select id="f-series">
+        <option value="">All series</option>
+        <option value="1">parkrun (5k)</option>
+        <option value="2">junior parkrun (2k)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-search">Search name / location</label>
+      <input id="f-search" type="search" placeholder="e.g. Bushy, Sydney…" autocomplete="off" />
+    </div>
+    <button class="reset" id="reset" type="button">Reset</button>
+    <div class="count" id="count">Loading…</div>
+  </div>
+</header>
+<div id="map"><div class="loading" id="loading">Loading parkrun locations…</div></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/leaflet.markercluster.js"></script>
+<script>
+// Point Leaflet at the locally vendored marker images.
+L.Icon.Default.imagePath = "vendor/images/";
+
+// Friendly country names keyed by the parkrun country domain.
+const COUNTRY_NAMES = {
+  "www.parkrun.org.uk": "United Kingdom",
+  "www.parkrun.com.au": "Australia",
+  "www.parkrun.co.za": "South Africa",
+  "www.parkrun.ie": "Ireland",
+  "www.parkrun.pl": "Poland",
+  "www.parkrun.us": "United States",
+  "www.parkrun.com.de": "Germany",
+  "www.parkrun.co.nz": "New Zealand",
+  "www.parkrun.ca": "Canada",
+  "www.parkrun.jp": "Japan",
+  "www.parkrun.co.nl": "Netherlands",
+  "www.parkrun.it": "Italy",
+  "www.parkrun.se": "Sweden",
+  "www.parkrun.dk": "Denmark",
+  "www.parkrun.no": "Norway",
+  "www.parkrun.fi": "Finland",
+  "www.parkrun.co.at": "Austria",
+  "www.parkrun.sg": "Singapore",
+  "www.parkrun.lt": "Lithuania",
+  "www.parkrun.my": "Malaysia",
+  "www.parkrun.com": "International"
+};
+
+const SERIES_NAMES = { 1: "parkrun", 2: "junior parkrun" };
+const DATA_URL = "images.parkrun.com-events.json.json";
+
+const map = L.map("map", { worldCopyJump: true }).setView([25, 10], 2);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+const cluster = L.markerClusterGroup({
+  chunkedLoading: true,
+  maxClusterRadius: 50,
+  spiderfyOnMaxZoom: true
+});
+map.addLayer(cluster);
+
+const els = {
+  country: document.getElementById("f-country"),
+  series: document.getElementById("f-series"),
+  search: document.getElementById("f-search"),
+  reset: document.getElementById("reset"),
+  count: document.getElementById("count"),
+  loading: document.getElementById("loading")
+};
+
+let all = [];        // { lat, lng, name, location, shortName, eventname, countrycode, countryName, seriesid, url, marker }
+let countryLookup = {}; // countrycode -> { url, name }
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function buildPopup(e) {
+  const parts = [];
+  parts.push('<span class="p-name">' + escapeHtml(e.name) + "</span>");
+  if (e.location) parts.push('<span class="p-meta">' + escapeHtml(e.location) + "</span><br>");
+  parts.push('<span class="p-meta">' + escapeHtml(e.countryName) + "</span>");
+  if (e.eventurl) {
+    parts.push('<br><a href="' + escapeHtml(e.eventurl) + '" target="_blank" rel="noopener">Event page ↗</a>');
+  }
+  parts.push('<br><span class="p-badge">' + escapeHtml(SERIES_NAMES[e.seriesid] || "parkrun") + "</span>");
+  return parts.join("");
+}
+
+function applyFilters() {
+  const c = els.country.value;
+  const s = els.series.value;
+  const q = els.search.value.trim().toLowerCase();
+
+  cluster.clearLayers();
+  const visible = [];
+  for (const e of all) {
+    if (c && String(e.countrycode) !== c) continue;
+    if (s && String(e.seriesid) !== s) continue;
+    if (q) {
+      const hay = (e.name + " " + e.location + " " + e.eventname).toLowerCase();
+      if (!hay.includes(q)) continue;
+    }
+    visible.push(e.marker);
+  }
+  cluster.addLayers(visible);
+  els.count.innerHTML = "<b>" + visible.length.toLocaleString() + "</b> of " +
+    all.length.toLocaleString() + " parkruns";
+}
+
+function populateCountryFilter() {
+  const seen = new Map(); // code -> name
+  for (const e of all) if (!seen.has(e.countrycode)) seen.set(e.countrycode, e.countryName);
+  const sorted = [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  for (const [code, name] of sorted) {
+    const opt = document.createElement("option");
+    opt.value = String(code);
+    opt.textContent = name;
+    els.country.appendChild(opt);
+  }
+}
+
+fetch(DATA_URL)
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(data => {
+    // Build countrycode -> friendly name lookup from the countries block.
+    for (const [code, info] of Object.entries(data.countries || {})) {
+      const url = info && info.url;
+      countryLookup[code] = {
+        url: url,
+        name: (url && COUNTRY_NAMES[url]) || url || "Unknown"
+      };
+    }
+
+    const features = (data.events && data.events.features) || [];
+    for (const f of features) {
+      const g = f.geometry;
+      const p = f.properties || {};
+      if (!g || !Array.isArray(g.coordinates)) continue;
+      const lng = g.coordinates[0], lat = g.coordinates[1];
+      if (typeof lat !== "number" || typeof lng !== "number") continue;
+
+      const cinfo = countryLookup[String(p.countrycode)] || {};
+      const e = {
+        lat, lng,
+        name: p.EventLongName || p.EventShortName || p.eventname || "parkrun",
+        location: p.EventLocation || "",
+        shortName: p.EventShortName || "",
+        eventname: p.eventname || "",
+        countrycode: p.countrycode,
+        countryName: cinfo.name || "Unknown",
+        seriesid: p.seriesid,
+        eventurl: cinfo.url && p.eventname ? "https://" + cinfo.url + "/" + p.eventname + "/" : null
+      };
+      e.marker = L.marker([lat, lng]).bindPopup(() => buildPopup(e), { autoPan: true });
+      all.push(e);
+    }
+
+    populateCountryFilter();
+    applyFilters();
+    els.loading.remove();
+  })
+  .catch(err => {
+    els.loading.textContent = "Failed to load data: " + err.message;
+    els.count.textContent = "Error";
+  });
+
+els.country.addEventListener("change", applyFilters);
+els.series.addEventListener("change", applyFilters);
+let searchTimer;
+els.search.addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applyFilters, 180);
+});
+els.reset.addEventListener("click", () => {
+  els.country.value = "";
+  els.series.value = "";
+  els.search.value = "";
+  applyFilters();
+});
+</script>
+</body>
+</html>
