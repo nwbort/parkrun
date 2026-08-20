@@ -47854,26 +47854,6 @@
         }
       },
       {
-        "id": 3368,
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            140.19929,
-            35.748798
-          ]
-        },
-        "properties": {
-          "eventname": "sunsethillsshitasanbashi",
-          "EventLongName": "Sunset Hills Shitasanbashi parkrun",
-          "EventShortName": "Sunset Hills Shitasanbashi",
-          "LocalisedEventLongName": "サンセットヒルズ下桟橋parkrun",
-          "countrycode": 46,
-          "seriesid": 1,
-          "EventLocation": "Sunset Hills Shitasanbashi"
-        }
-      },
-      {
         "id": 3369,
         "type": "Feature",
         "geometry": {
@@ -59431,6 +59411,26 @@
           "countrycode": 64,
           "seriesid": 1,
           "EventLocation": "Zuiderpark, Rotterdam"
+        }
+      },
+      {
+        "id": 3978,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            140.202824,
+            35.740588
+          ]
+        },
+        "properties": {
+          "eventname": "sakurafurusatohiroba",
+          "EventLongName": "Sakura Furusato Hiroba parkrun",
+          "EventShortName": "Sakura Furusato Hiroba",
+          "LocalisedEventLongName": "佐倉ふるさと広場parkrun",
+          "countrycode": 46,
+          "seriesid": 1,
+          "EventLocation": "Sakura Furusato Hiroba"
         }
       }
     ]
