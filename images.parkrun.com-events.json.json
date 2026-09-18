@@ -58705,8 +58705,8 @@
         },
         "properties": {
           "eventname": "ruthinmemorialpf-juniors",
-          "EventLongName": "Ruthin Memorial Playing Field junior parkrun",
-          "EventShortName": "Ruthin Memorial Playing Field juniors",
+          "EventLongName": "Ruthin Memorial Playing Fields junior parkrun",
+          "EventShortName": "Ruthin Memorial Playing Fields juniors",
           "LocalisedEventLongName": null,
           "countrycode": 97,
           "seriesid": 2,
@@ -59651,6 +59651,26 @@
           "countrycode": 14,
           "seriesid": 1,
           "EventLocation": "Red Willow Trail"
+        }
+      },
+      {
+        "id": 4000,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            135.008025,
+            34.642379
+          ]
+        },
+        "properties": {
+          "eventname": "okurakaigankoen",
+          "EventLongName": "Okura kaigan koen parkrun",
+          "EventShortName": "Okura kaigan koen",
+          "LocalisedEventLongName": "大蔵海岸公園 parkrun",
+          "countrycode": 46,
+          "seriesid": 1,
+          "EventLocation": "Okura kaigan koen"
         }
       }
     ]
